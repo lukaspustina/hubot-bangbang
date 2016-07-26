@@ -87,9 +87,10 @@ describe 'bangbang', ->
 
 setup_test_env = (env) ->
   process.env.HUBOT_BANGBANG_COMMANDS_FILE = "#{__dirname}/commands-test.js"
-  process.env.HUBOT_BOSUN_TIMEOUT = 1000
-  process.env.HUBOT_BOSUN_LOG_LEVEL = "error"
+  process.env.HUBOT_BANGBANG_LOG_LEVEL = "error"
   process.env.HUBOT_BANGBANG_ROLE = "bangbang"
+  process.env.HUBOT_BANGBANG_SLACK is "no"
+  process.env.HUBOT_BANGBANG_TIMEOUT = 1
 
   unpatched_utils_now = utils.now
   utils.now = () -> 1469527900631

@@ -50,10 +50,10 @@ module_name = "hubot-bangbang"
 
 config =
   commands_file: process.env.HUBOT_BANGBANG_COMMANDS_FILE
-  default_timeout: if process.env.HUBOT_BOSUN_TIMEOUT then parseInt process.env.HUBOT_BOSUN_TIMEOUT else 10000
-  log_level: process.env.HUBOT_BOSUN_LOG_LEVEL or "info"
+  default_timeout: if process.env.HUBOT_BANGBANG_TIMEOUT then parseInt process.env.HUBOT_BANGBANG_TIMEOUT else 10000
+  log_level: process.env.HUBOT_BANGBANG_LOG_LEVEL or "info"
   role: process.env.HUBOT_BANGBANG_ROLE or ""
-  slack: process.env.HUBOT_BOSUN_SLACK is "yes"
+  slack: process.env.HUBOT_BANGBANG_SLACK is "yes"
 
 commands = utils.load_commands_from_file config.commands_file
 
@@ -92,6 +92,7 @@ module.exports = (robot) ->
           command = c
           command.matches = match[1..]
           command.time = utils.now()
+          command.timeout = config.default_timeout unless command.timeout
           break
 
       unless command? and command.matches
