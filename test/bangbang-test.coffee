@@ -3,6 +3,8 @@ chai = require 'chai'
 Promise = require('bluebird')
 co = require('co')
 
+utils = require('../src/utils')
+
 expect = chai.expect
 
 process.env.EXPRESS_PORT = 18080
@@ -45,6 +47,7 @@ describe 'bangbang', ->
           expect(@room.messages).to.eql [
             ['alice', '@hubot !! use report for server']
             ['hubot', "@alice Alright, trying to retrieve an USE report from the specified host with parameters 'server'."]
+            ['hubot', "@alice Your ticket is 'd42a892'."]
           ]
 
   context "unauthorized", ->
@@ -65,13 +68,19 @@ setup_test_env = (env) ->
   process.env.HUBOT_BOSUN_LOG_LEVEL = "debug"
   process.env.HUBOT_BANGBANG_ROLE = "bangbang"
 
+  unpatched_utils_now = utils.now
+  utils.now = () -> 1469527900631
+
   helper = new Helper('../src/bangbang.coffee')
   room = helper.createRoom()
   room.robot.auth = new MockAuth
+  room.unpatched_utils_now = unpatched_utils_now
 
   room
 
 tear_down_test_env = (room) ->
+  utils.now = room.unpatched_utils_now
+
   room.destroy()
   # Force reload of module under test
   delete require.cache[require.resolve('../src/bangbang')]

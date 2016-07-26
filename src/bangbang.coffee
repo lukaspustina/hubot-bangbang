@@ -40,6 +40,7 @@ config =
   default_timeout: if process.env.HUBOT_BOSUN_TIMEOUT then parseInt process.env.HUBOT_BOSUN_TIMEOUT else 10000
   log_level: process.env.HUBOT_BOSUN_LOG_LEVEL or "info"
   role: process.env.HUBOT_BANGBANG_ROLE or ""
+  slack: process.env.HUBOT_BOSUN_SLACK is "yes"
 
 commands = utils.load_commands_from_file config.commands_file
 
@@ -53,22 +54,36 @@ module.exports = (robot) ->
       warn_unauthorized res
     else
       user_name = res.envelope.user.name
-      command_str = res.match[1]
-      logger.info "#{module_name}: '#{command_str}' requested by #{user_name}."
+      command_req = res.match[1]
+      logger.info "#{module_name}: '#{command_req}' requested by #{user_name}."
 
-      match = null
       command = null
       for c in commands
-        if match = ///#{c.rexex}///i.exec command_str
+        if match = ///#{c.rexex}///i.exec command_req
           command = c
+          command.matches = match[1..]
+          command.time = utils.now()
           break
 
-      unless match
-        logger.info "#{module_name}: Did not recognize any command in '#{command_str}'."
-        res.reply "Oh oh! Did not recognize any command in '#{command_str}'."
+      unless command? and command.matches
+        logger.info "#{module_name}: Did not recognize any command in '#{command_req}'."
+        res.reply "Oh oh! Did not recognize any command in '#{command_req}'."
       else
-        logger.info "#{module_name}: Recognized command '#{c.name}' in '#{command_str}'."
-        res.reply "Alright, trying to #{c.description} with parameters '#{match[1..]}'."
+        logger.info "#{module_name}: Recognized command '#{command.name}' in '#{command_req}'."
+        res.reply "Alright, trying to #{c.description} with parameters '#{command.matches}'."
+
+        command.line = utils.bind_command_parameters command
+        logger.debug "#{module_name}: Going to execute '#{command.line}'."
+        command.ticket = utils.exec_command command, (error, stdout, stderr) ->
+          if error
+            console.log "Error: #{error}"
+          else
+            console.log "Success"
+          console.log stdout
+          console.log stderr
+
+        logger.info "#{module_name}: Ticket for '#{command.line}' is '#{command.ticket}'."
+        res.reply "Your ticket is '#{utils.shorten_ticket command.ticket}'."
 
 
   robot.error (err, res) ->

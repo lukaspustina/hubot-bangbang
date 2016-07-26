@@ -22,6 +22,21 @@ describe 'utils', ->
   context 'bind command parameters', ->
 
     it 'success', ->
-      command = utils.bind_command_parameters "ssh $1 ls $2", ["full match", "server", "/home"]
-      expect(command).to.eql "ssh server ls /home"
+      command = { exec: "ssh $1 ls $2", matches: ["server", "/home"] }
+      command_line = utils.bind_command_parameters command
+      expect(command_line).to.eql "ssh server ls /home"
+
+
+  context 'tickets', ->
+
+    it 'create ticket', ->
+      command = { line: "ssh server ls /home", time: 1469527900631 }
+      ticket = utils.create_ticket command
+      expect(ticket).to.eql "b517af8e0991db36ad438d9001eb6c860eb935f1"
+
+    it 'create ticket', ->
+      command = { line: "ssh server ls /home", time: 1469527900631 }
+      ticket = utils.create_ticket command
+      short_ticket = utils.shorten_ticket ticket
+      expect(short_ticket).to.eql "b517af8"
 

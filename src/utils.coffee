@@ -1,4 +1,5 @@
-exec = (require 'child_process').exec
+child_process = require 'child_process'
+crypto = require 'crypto'
 
 module.exports =
 
@@ -15,12 +16,26 @@ module.exports =
     #});
 
 
-  bind_command_parameters: (command_prototype, matches) ->
-    command = command_prototype
-    for i in [1..matches.length-1]
-      command = command.replace "$#{i}", matches[i]
-    command
+  bind_command_parameters: (command) ->
+    command_line = command.exec
+    matches = command.matches
+    for i in [0..matches.length-1]
+      command_line = command_line.replace "$#{i+1}", matches[i]
+    command_line
 
-  exec_command: (command, timeout, handler ) ->
-    exec 'cat *.js bad_file | wc -l', {timeout: timeout}, handler
+  exec_command: (command, handler ) ->
+    child_process.exec command.line, {timeout: command.timeout * 1000}, handler
+    this.create_ticket command
+
+
+  now: () ->
+    new Date().valueOf()
+
+  create_ticket:  (command) ->
+    text = command.line + command.time
+    ticket = crypto.createHash('sha1').update(text).digest('hex')
+    ticket
+
+  shorten_ticket: (ticket) ->
+    ticket[0..6]
 
