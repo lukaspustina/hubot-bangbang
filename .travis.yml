@@ -1,0 +1,20 @@
+language: node_js
+node_js:
+- '4'
+- '6'
+sudo: false
+cache:
+  directories:
+  - node_modules
+after_success: |
+  echo "TRAVIS_NODE_VERSION=${TRAVIS_NODE_VERSION}"
+deploy:
+  provider: npm
+  email: lukas.pustina@gmail.com
+  api_key:
+    secure: YdBQmA9gaSYPhwCcE7QO6MY8Syu7iEBOnCq4w7QqZhom8n197S3pqVbg1X4Ep8FqmDjGlLgY/12gqesYFk5YFZk/dXuEqmsr9EDU1FE34oCCTYLEUmm307Kb5gVan4WGwNEstwHhVKuDhyRaAti1YHEDl5uXN0my3DBocfJSs96TDFgaTWRGV6hP1LtgT+SPkrJVe7SXuCMAIRmV8KHpJBCaxhhm0z9Y9IdssFuKUOgz3ZQhNGYzkhJ6G8nAQ6Xu6K7bILZRAcD3vmvKFzhZWUoqP2v+r0CuRE+z1EXTrVspMdxqV9jNGBE67UN074j2fLBvRXCGy1kV0sMJZqaw6GNW8E+Ji+klIdk1m91Nxuv1u2MPcIMmCCF2Bb3k9WgdEePfng1pTd03FZFjIeFx1jEHE1H1v2Mjpdysmklc5qy8u9rUFJmw5nJYiz4e+daPi3pvI6zmFHUxcMh7ErGDCYlTseXVo7KclSKyC0aoz+6GzP2NwPR0NnXytVK6e1E0sdTlS7sUUVrt0GliA00LGEOHk6cDG3jJrpxvsW4hAy2qaPjcy1PoDf1byQM+zuciq3PP/UUDvUtwxuPDvzq6B9ma7gd0PgJCx8+7l1D7yZQLEQ5CfD9qJXSqOmjJjbAB/lmkjVtJHM7cwhpFUYPpBOHjjnNCuAnVW3zySHFalkQ=
+  on:
+    tags: true
+    condition:
+    - "$TRAVIS_NODE_VERSION == 4"
+    repo: lukaspustina/hubot-bangbang
