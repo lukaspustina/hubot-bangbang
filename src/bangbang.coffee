@@ -12,6 +12,7 @@
 #
 # Todos:
 #   0.1.0
+#   * Execute a command
 #   * Commands
 #     * !! help -- show currently available commands
 #     * !! reload commands -- reload command definition

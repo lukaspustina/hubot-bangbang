@@ -1,3 +1,4 @@
+exec = (require 'child_process').exec
 
 module.exports =
 
@@ -12,4 +13,14 @@ module.exports =
       #if (err) throw err;
       #obj = JSON.parse(data);
     #});
+
+
+  bind_command_parameters: (command_prototype, matches) ->
+    command = command_prototype
+    for i in [1..matches.length-1]
+      command = command.replace "$#{i}", matches[i]
+    command
+
+  exec_command: (command, timeout, handler ) ->
+    exec 'cat *.js bad_file | wc -l', {timeout: timeout}, handler
 

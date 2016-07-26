@@ -12,11 +12,16 @@ describe 'utils', ->
         name: "use report",
         description: "retrieve an USE report from the specified host",
         rexex: "use report for (.+)",
-        exec: 'ssh \\1 usereport.py',
+        exec: 'echo ssh $1 usereport.py',
         timeout: 60,
         output_type: "markdown",
         role: "task_use_report",
       }
     ]
 
+  context 'bind command parameters', ->
+
+    it 'success', ->
+      command = utils.bind_command_parameters "ssh $1 ls $2", ["full match", "server", "/home"]
+      expect(command).to.eql "ssh server ls /home"
 
