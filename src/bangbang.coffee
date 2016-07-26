@@ -12,7 +12,6 @@
 #
 # Todos:
 #   0.1.0
-#   * Loading of commands from resource file
 #   * Commands
 #     * !! help -- show currently available commands
 #     * !! reload commands -- reload command definition
@@ -31,26 +30,17 @@
 
 
 Log = require 'log'
+utils = require './utils'
 
 module_name = "hubot-bangbang"
 
 config =
-  commands_file: process.env.HUBOT_BANGBANG_COMMAND_FILE
+  commands_file: process.env.HUBOT_BANGBANG_COMMANDS_FILE
   default_timeout: if process.env.HUBOT_BOSUN_TIMEOUT then parseInt process.env.HUBOT_BOSUN_TIMEOUT else 10000
   log_level: process.env.HUBOT_BOSUN_LOG_LEVEL or "info"
   role: process.env.HUBOT_BANGBANG_ROLE or ""
 
-commands = [
-  {
-    name: "use report"
-    description: "retrieve an USE report from the specified host"
-    rexexp: "use report for (.+)"
-    exec: 'ssh \\1 usereport.py'
-    timeout: 60
-    output_type: "markdown"
-    role: "task_use_report"
-  }
-]
+commands = utils.load_commands_from_file config.commands_file
 
 logger = new Log config.log_level
 logger.notice "#{module_name}: Started."
@@ -63,12 +53,12 @@ module.exports = (robot) ->
     else
       user_name = res.envelope.user.name
       command_str = res.match[1]
-      logger.info "#{module_name}: '#{command}' requested by #{user_name}."
+      logger.info "#{module_name}: '#{command_str}' requested by #{user_name}."
 
       match = null
       command = null
       for c in commands
-        if match = ///#{c.rexexp}///i.exec command_str
+        if match = ///#{c.rexex}///i.exec command_str
           command = c
           break
 
@@ -76,7 +66,7 @@ module.exports = (robot) ->
         logger.info "#{module_name}: Did not recognize any command in '#{command_str}'."
         res.reply "Oh oh! Did not recognize any command in '#{command_str}'."
       else
-        logger.info "#{module_name}: Recognized command '#{c.name}' in '#{command}'."
+        logger.info "#{module_name}: Recognized command '#{c.name}' in '#{command_str}'."
         res.reply "Alright, trying to #{c.description} with parameters '#{match[1..]}'."
 
 

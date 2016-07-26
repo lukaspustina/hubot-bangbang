@@ -8,6 +8,8 @@ expect = chai.expect
 process.env.EXPRESS_PORT = 18080
 api_call_delay = 20
 
+
+
 describe 'bangbang', ->
   beforeEach ->
     @room = setup_test_env {}
@@ -33,13 +35,13 @@ describe 'bangbang', ->
 
     context "recognized", ->
 
-      context "run", ->
+      context "use report for server", ->
         beforeEach ->
           co =>
             yield @room.user.say 'alice', '@hubot !! use report for server'
             yield new Promise.delay api_call_delay
 
-        it 'test bosun silences', ->
+        it 'run', ->
           expect(@room.messages).to.eql [
             ['alice', '@hubot !! use report for server']
             ['hubot', "@alice Alright, trying to retrieve an USE report from the specified host with parameters 'server'."]
@@ -57,10 +59,8 @@ describe 'bangbang', ->
           ]
 
 
-
-
 setup_test_env = (env) ->
-  process.env.HUBOT_BANGBANG_COMMAND_FILE = ""
+  process.env.HUBOT_BANGBANG_COMMANDS_FILE = "#{__dirname}/commands-test.js"
   process.env.HUBOT_BOSUN_TIMEOUT = 1000
   process.env.HUBOT_BOSUN_LOG_LEVEL = "debug"
   process.env.HUBOT_BANGBANG_ROLE = "bangbang"
