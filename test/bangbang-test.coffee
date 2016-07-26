@@ -21,48 +21,60 @@ describe 'bangbang', ->
 
   context "authorized", ->
 
-    context "unrecognized", ->
-
-      context "!! anything", ->
-        beforeEach ->
-          co =>
-            yield @room.user.say 'alice', '@hubot !! anything'
-            yield new Promise.delay command_execution_delay
-
-        it 'run', ->
+    context "help", ->
+      it 'help', ->
+        @room.user.say('alice', '@hubot bangbang help').then =>
           expect(@room.messages).to.eql [
-            ['alice', '@hubot !! anything']
-            ['hubot', "@alice Oh oh! Did not recognize any command in 'anything'."]
+            ['alice', '@hubot bangbang help']
+            ['hubot', "@alice !! use report for (.+) - retrieve an USE report from the specified host"]
           ]
 
-    context "recognized", ->
+    context "run command", ->
 
-      context "use report for server", ->
-        beforeEach ->
-          co =>
-            yield @room.user.say 'alice', '@hubot !! use report for server'
-            yield new Promise.delay command_execution_delay
+      context "unrecognized", ->
 
-        it 'run', ->
-          expect(@room.messages).to.eql [
-            ['alice', '@hubot !! use report for server']
-            ['hubot', "@alice Alright, trying to retrieve an USE report from the specified host with parameters 'server'."]
-            ['hubot', "@alice Your ticket is 'd42a892'."]
-            ['hubot', "@alice Your command with ticket 'd42a892' finished successfully."]
-            ['hubot', "@alice Command output for 'echo ssh server usereport.py':"]
-            ['hubot', "@alice ssh server usereport.py\n"]
-          ]
+        context "!! anything", ->
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! anything'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', '@hubot !! anything']
+              ['hubot', "@alice Oh oh! Did not recognize any command in 'anything'."]
+            ]
+
+      context "recognized", ->
+
+        context "use report for server", ->
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! use report for server'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', '@hubot !! use report for server']
+              ['hubot', "@alice Alright, trying to retrieve an USE report from the specified host with parameters 'server'."]
+              ['hubot', "@alice Your ticket is 'd42a892'."]
+              ['hubot', "@alice Your command with ticket 'd42a892' finished successfully."]
+              ['hubot', "@alice Command output for 'echo ssh server usereport.py':"]
+              ['hubot', "@alice ssh server usereport.py\n"]
+            ]
 
   context "unauthorized", ->
 
-    context "Fail if unauthorized", ->
+    context "run command", ->
 
-      it '!! anything', ->
-        @room.user.say('bob', '@hubot !! anything').then =>
-          expect(@room.messages).to.eql [
-            ['bob', '@hubot !! anything']
-            ['hubot', "@bob Sorry, you're not allowed to do that. You need the 'bangbang' role."]
-          ]
+      context "Fail if unauthorized", ->
+
+        it '!! anything', ->
+          @room.user.say('bob', '@hubot !! anything').then =>
+            expect(@room.messages).to.eql [
+              ['bob', '@hubot !! anything']
+              ['hubot', "@bob Sorry, you're not allowed to do that. You need the 'bangbang' role."]
+            ]
 
 
 setup_test_env = (env) ->

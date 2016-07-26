@@ -4,6 +4,7 @@
 # Configuration:
 #
 # Commands:
+#   bangbang help -- show currently available commands
 #
 # Notes:
 #
@@ -23,7 +24,6 @@
 #         * ignore
 #         * pretty
 #   * Commands
-#     * !! help -- show currently available commands
 #     * !! reload commands -- reload command definition
 #     * !! <...> -- execute a specific command
 #   * Output
@@ -60,6 +60,14 @@ logger = new Log config.log_level
 logger.notice "#{module_name}: Started."
 
 module.exports = (robot) ->
+
+  robot.respond /bangbang help/i, (res) ->
+    unless is_authorized robot, res.envelope.user
+      warn_unauthorized res
+    else
+      msg = ("!! #{c.rexex} - #{c.description}" for c in commands)
+      res.reply msg.join('\n')
+
 
   robot.respond /!! (.*)/i, (res) ->
     unless is_authorized robot, res.envelope.user
