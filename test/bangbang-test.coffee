@@ -8,7 +8,7 @@ utils = require('../src/utils')
 expect = chai.expect
 
 process.env.EXPRESS_PORT = 18080
-api_call_delay = 20
+command_execution_delay = 20
 
 
 
@@ -27,7 +27,7 @@ describe 'bangbang', ->
         beforeEach ->
           co =>
             yield @room.user.say 'alice', '@hubot !! anything'
-            yield new Promise.delay api_call_delay
+            yield new Promise.delay command_execution_delay
 
         it 'run', ->
           expect(@room.messages).to.eql [
@@ -41,13 +41,16 @@ describe 'bangbang', ->
         beforeEach ->
           co =>
             yield @room.user.say 'alice', '@hubot !! use report for server'
-            yield new Promise.delay api_call_delay
+            yield new Promise.delay command_execution_delay
 
         it 'run', ->
           expect(@room.messages).to.eql [
             ['alice', '@hubot !! use report for server']
             ['hubot', "@alice Alright, trying to retrieve an USE report from the specified host with parameters 'server'."]
             ['hubot', "@alice Your ticket is 'd42a892'."]
+            ['hubot', "@alice Your command with ticket 'd42a892' finished successfully."]
+            ['hubot', "@alice Command output for 'echo ssh server usereport.py':"]
+            ['hubot', "@alice ssh server usereport.py\n"]
           ]
 
   context "unauthorized", ->

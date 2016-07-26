@@ -13,6 +13,10 @@
 # Todos:
 #   0.1.0
 #   * Execute a command
+#     * Tests
+#       * Command fails
+#       * Command does not exist
+#       * Timeout fires
 #   * Commands
 #     * !! help -- show currently available commands
 #     * !! reload commands -- reload command definition
@@ -75,12 +79,41 @@ module.exports = (robot) ->
         command.line = utils.bind_command_parameters command
         logger.debug "#{module_name}: Going to execute '#{command.line}'."
         command.ticket = utils.exec_command command, (error, stdout, stderr) ->
-          if error
-            console.log "Error: #{error}"
+          result_msg = if error
+            "command with ticket '#{utils.shorten_ticket command.ticket}' finished with error code #{error.code}, because of #{error.signal}."
           else
-            console.log "Success"
-          console.log stdout
-          console.log stderr
+            "command with ticket '#{utils.shorten_ticket command.ticket}' finished successfully."
+          logger.info "#{module_name}: #{result_msg}"
+
+          unless config.slack
+            res.reply "Your " + result_msg
+            res.reply "Command output for '#{command.line}':"
+            res.reply stdout if stdout.length > 0
+            res.reply stderr if stderr.length > 0
+          else
+            color = if error then 'danger' else 'good'
+
+            # TODO: output_type
+
+            attachments = []
+            attachments.push {
+              color: color
+              title: "stdout"
+              text: stdout
+              mrkdwn_in: ["text"]
+            } if stdout
+            attachments.push {
+              color: color
+              title: "stderr"
+              text: stderr
+              mrkdwn_in: ["text"]
+            } if stderr
+
+            robot.adapter.customMessage {
+              channel: res.message.room
+              text: "Your " + result_msg
+              attachments: attachments
+            }
 
         logger.info "#{module_name}: Ticket for '#{command.line}' is '#{command.ticket}'."
         res.reply "Your ticket is '#{utils.shorten_ticket command.ticket}'."
