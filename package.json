@@ -1,7 +1,7 @@
 {
   "name": "hubot-bangbang",
   "description": "Execute pre-configured command via Hubot !!",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "lukas.pustina@gmail.co",
   "license": "MIT",
   "keywords": "hubot, bangbang",
