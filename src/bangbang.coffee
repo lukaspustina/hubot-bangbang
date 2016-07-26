@@ -17,6 +17,11 @@
 #       * Command fails
 #       * Command does not exist
 #       * Timeout fires
+#       * Slack Output
+#         * markdown
+#         * plain
+#         * ignore
+#         * pretty
 #   * Commands
 #     * !! help -- show currently available commands
 #     * !! reload commands -- reload command definition
@@ -24,6 +29,9 @@
 #   * Output
 #     * plain output
 #     * pretty print for slack
+#   * Documentation
+#     * commands JSON format
+#     * Output Types
 #   0.2.0
 #   * Events
 #     * Receive
@@ -92,22 +100,24 @@ module.exports = (robot) ->
             res.reply stderr if stderr.length > 0
           else
             color = if error then 'danger' else 'good'
-
-            # TODO: output_type
+            [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
+              when 'markdown' then [ ["text"], stderr, stdout ]
+              when 'pre' then [ ["text"], "```\n#{stdout}\n```", "```\n#{stderr}\n```" ]
+              else [ [], stderr, stdout ] # Also applies for 'plain'
 
             attachments = []
             attachments.push {
               color: color
               title: "stdout"
-              text: stdout
+              text: pretty_out
               mrkdwn_in: ["text"]
-            } if stdout
+            } if stdout and command.output_type is not 'ignore'
             attachments.push {
               color: color
               title: "stderr"
-              text: stderr
+              text: pretty_err
               mrkdwn_in: ["text"]
-            } if stderr
+            } if stderr and command.output_type is not 'ignore'
 
             robot.adapter.customMessage {
               channel: res.message.room
