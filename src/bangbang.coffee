@@ -11,14 +11,46 @@
 #   lukas.pustina@gmail.com
 #
 # Todos:
+#   0.1.0
+#   * Loading of commands from resource file
+#   * Commands
+#     * !! help -- show currently available commands
+#     * !! reload commands -- reload command definition
+#     * !! <...> -- execute a specific command
+#   * Output
+#     * plain output
+#     * pretty print for slack
+#   0.2.0
+#   * Events
+#     * Receive
+#       * reload commands
+#       * execute command
+#     * Send
+#       * reload failed|success
+#       * execute failed|success
 
-request = require 'request'
+
 Log = require 'log'
 
 module_name = "hubot-bangbang"
 
 config =
+  commands_file: process.env.HUBOT_BANGBANG_COMMAND_FILE
+  default_timeout: if process.env.HUBOT_BOSUN_TIMEOUT then parseInt process.env.HUBOT_BOSUN_TIMEOUT else 10000
+  log_level: process.env.HUBOT_BOSUN_LOG_LEVEL or "info"
   role: process.env.HUBOT_BANGBANG_ROLE or ""
+
+commands = [
+  {
+    name: "use report"
+    description: "retrieve an USE report from the specified host"
+    rexexp: "use report for (.+)"
+    exec: 'ssh \\1 usereport.py'
+    timeout: 60
+    output_type: "markdown"
+    role: "task_use_report"
+  }
+]
 
 logger = new Log config.log_level
 logger.notice "#{module_name}: Started."
@@ -26,9 +58,26 @@ logger.notice "#{module_name}: Started."
 module.exports = (robot) ->
 
   robot.respond /!! (.*)/i, (res) ->
-    if is_authorized robot, res
+    unless is_authorized robot, res.envelope.user
+      warn_unauthorized res
+    else
       user_name = res.envelope.user.name
-      logger.info "#{module_name}: by #{user_name}."
+      command_str = res.match[1]
+      logger.info "#{module_name}: '#{command}' requested by #{user_name}."
+
+      match = null
+      command = null
+      for c in commands
+        if match = ///#{c.rexexp}///i.exec command_str
+          command = c
+          break
+
+      unless match
+        logger.info "#{module_name}: Did not recognize any command in '#{command_str}'."
+        res.reply "Oh oh! Did not recognize any command in '#{command_str}'."
+      else
+        logger.info "#{module_name}: Recognized command '#{c.name}' in '#{command}'."
+        res.reply "Alright, trying to #{c.description} with parameters '#{match[1..]}'."
 
 
   robot.error (err, res) ->
@@ -37,22 +86,14 @@ module.exports = (robot) ->
     if res?
       res.reply "DOES NOT COMPUTE: #{err}"
 
-is_authorized = (robot, res) ->
-  user = res.envelope.user
-  unless robot.auth.hasRole(user, config.role)
-    warn_unauthorized res
-    false
-  else
-    true
+
+is_authorized = (robot, user) ->
+  logger.debug "Checking authorization for user '#{user.name}' and role '#{config.role}': role is #{config.role is ""}, auth is #{robot.auth.hasRole(user, config.role)}, combined is #{config.role is "" or robot.auth.hasRole(user, config.role)}."
+  config.role is "" or robot.auth.hasRole(user, config.role)
 
 warn_unauthorized = (res) ->
   user = res.envelope.user.name
   message = res.message.text
-  logger.warning "#{module_name}: #{user} tried to run '#{message}' but was not authorized."
+  logger.warning "hubot-#{module_name}: #{user} tried to run '#{message}' but was not authorized."
   res.reply "Sorry, you're not allowed to do that. You need the '#{config.role}' role."
 
-format_date_str = (date_str) ->
-  if config.relative_time
-    moment(date_str).fromNow()
-  else
-    date_str.replace(/T/, ' ').replace(/\..+/, ' UTC')
