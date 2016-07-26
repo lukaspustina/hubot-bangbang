@@ -4,7 +4,7 @@
 
 [![NPM](https://nodei.co/npm/hubot-bangbang.png)](https://nodei.co/npm/hubot-bangbang/)
 
-Execute pre-configures command via hubot !!
+Execute pre-configured command via hubot !!
 
 See [`src/bangbang.coffee`](src/bangbang.coffee) for full documentation.
 
