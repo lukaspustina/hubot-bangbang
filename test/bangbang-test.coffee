@@ -21,12 +21,20 @@ describe 'bangbang', ->
 
   context "authorized", ->
 
-    context "help", ->
+    context "show help", ->
       it 'help', ->
         @room.user.say('alice', '@hubot bangbang help').then =>
           expect(@room.messages).to.eql [
             ['alice', '@hubot bangbang help']
             ['hubot', "@alice !! use report for (.+) - retrieve an USE report from the specified host"]
+          ]
+
+    context "reload commands", ->
+      it 'reload', ->
+        @room.user.say('alice', '@hubot bangbang reload commands').then =>
+          expect(@room.messages).to.eql [
+            ['alice', '@hubot bangbang reload commands']
+            ['hubot', "@alice Reloaded. Now I recognize 1 command."]
           ]
 
     context "run command", ->

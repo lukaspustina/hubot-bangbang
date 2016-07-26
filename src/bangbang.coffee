@@ -69,6 +69,14 @@ module.exports = (robot) ->
       res.reply msg.join('\n')
 
 
+  robot.respond /bangbang reload commands/i, (res) ->
+    unless is_authorized robot, res.envelope.user
+      warn_unauthorized res
+    else
+      commands = utils.load_commands_from_file config.commands_file
+      res.reply "Reloaded. Now I recognize #{commands.length} command#{if commands.length > 1 then 's' else ''}."
+
+
   robot.respond /!! (.*)/i, (res) ->
     unless is_authorized robot, res.envelope.user
       warn_unauthorized res
