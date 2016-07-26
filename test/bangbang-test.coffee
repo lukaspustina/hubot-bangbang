@@ -23,17 +23,17 @@ describe 'bangbang', ->
 
     context "show help", ->
       it 'help', ->
-        @room.user.say('alice', '@hubot bangbang help').then =>
+        @room.user.say('alice', '@hubot show bangbang commands').then =>
           expect(@room.messages).to.eql [
-            ['alice', '@hubot bangbang help']
+            ['alice', '@hubot show bangbang commands']
             ['hubot', "@alice !! use report for (.+) - retrieve an USE report from the specified host"]
           ]
 
     context "reload commands", ->
       it 'reload', ->
-        @room.user.say('alice', '@hubot bangbang reload commands').then =>
+        @room.user.say('alice', '@hubot reload bangbang commands').then =>
           expect(@room.messages).to.eql [
-            ['alice', '@hubot bangbang reload commands']
+            ['alice', '@hubot reload bangbang commands']
             ['hubot', "@alice Reloaded. Now I recognize 1 command."]
           ]
 
@@ -88,7 +88,7 @@ describe 'bangbang', ->
 setup_test_env = (env) ->
   process.env.HUBOT_BANGBANG_COMMANDS_FILE = "#{__dirname}/commands-test.js"
   process.env.HUBOT_BOSUN_TIMEOUT = 1000
-  process.env.HUBOT_BOSUN_LOG_LEVEL = "debug"
+  process.env.HUBOT_BOSUN_LOG_LEVEL = "error"
   process.env.HUBOT_BANGBANG_ROLE = "bangbang"
 
   unpatched_utils_now = utils.now

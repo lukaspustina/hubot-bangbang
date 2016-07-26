@@ -4,7 +4,8 @@
 # Configuration:
 #
 # Commands:
-#   bangbang help -- show currently available commands
+#   show bangbang commands -- show currently available commands
+#   reload bangbang commands -- reload command definition
 #
 # Notes:
 #
@@ -61,7 +62,7 @@ logger.notice "#{module_name}: Started."
 
 module.exports = (robot) ->
 
-  robot.respond /bangbang help/i, (res) ->
+  robot.respond /show bangbang commands/i, (res) ->
     unless is_authorized robot, res.envelope.user
       warn_unauthorized res
     else
@@ -69,7 +70,7 @@ module.exports = (robot) ->
       res.reply msg.join('\n')
 
 
-  robot.respond /bangbang reload commands/i, (res) ->
+  robot.respond /reload bangbang commands/i, (res) ->
     unless is_authorized robot, res.envelope.user
       warn_unauthorized res
     else
