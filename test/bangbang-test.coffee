@@ -90,7 +90,7 @@ setup_test_env = (env) ->
   process.env.HUBOT_BANGBANG_LOG_LEVEL = "error"
   process.env.HUBOT_BANGBANG_ROLE = "bangbang"
   process.env.HUBOT_BANGBANG_SLACK is "no"
-  process.env.HUBOT_BANGBANG_TIMEOUT = 1
+  process.env.HUBOT_BANGBANG_TIMEOUT = 1000
 
   unpatched_utils_now = utils.now
   utils.now = () -> 1469527900631

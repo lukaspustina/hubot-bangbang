@@ -24,7 +24,7 @@ module.exports =
     command_line
 
   exec_command: (command, handler ) ->
-    child_process.exec command.line, {timeout: command.timeout * 1000}, handler
+    child_process.exec command.line, {timeout: command.timeout}, handler
     this.create_ticket command
 
 
