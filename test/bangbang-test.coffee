@@ -143,12 +143,16 @@ describe 'bangbang error handling', ->
             ]
 
 
-
+slackMessages = []
 describe 'bangbang with Slack', ->
   beforeEach ->
     @room = setup_test_env {
       hubot_bangbang_slack: "yes"
+      hubot_bangbang_commands_file: "#{__dirname}/commands_for_slack-test.js"
     }
+
+    slackMessages = []
+    @room.robot.adapter.customMessage = (msg) -> slackMessages.push msg
 
   afterEach ->
     tear_down_test_env @room
@@ -160,26 +164,174 @@ describe 'bangbang with Slack', ->
       context "recognized", ->
 
         context "successful with stdout only formated with markdown", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! markdown'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! markdown"]
+              ['hubot', "@alice Alright, trying to echo markdown with parameters ''."]
+              ['hubot', "@alice Your ticket is '6edb6c0'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: [
+                    color: "good"
+                    mrkdwn_in: [ "text" ]
+                    text: "# Title\n\n## Subtitle\n\n This is markdown\n"
+                    title: "stdout"
+                ]
+                channel: "room1"
+                text: "Your command with ticket '6edb6c0' finished successfully."
+            ]
 
         context "successful with stdout only formated with pre", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! pre'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! pre"]
+              ['hubot', "@alice Alright, trying to echo pre with parameters ''."]
+              ['hubot', "@alice Your ticket is 'da7e3fa'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: [
+                    color: "good"
+                    mrkdwn_in: [ "text" ]
+                    text: "```\noutput\n\n```"
+                    title: "stdout"
+                ]
+                channel: "room1"
+                text: "Your command with ticket 'da7e3fa' finished successfully."
+            ]
 
         context "successful with stdout only formated with plain", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! plain'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! plain"]
+              ['hubot', "@alice Alright, trying to echo plain with parameters ''."]
+              ['hubot', "@alice Your ticket is 'da7e3fa'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: [
+                    color: "good"
+                    mrkdwn_in: []
+                    text: "output\n"
+                    title: "stdout"
+                ]
+                channel: "room1"
+                text: "Your command with ticket 'da7e3fa' finished successfully."
+            ]
 
         context "successful with stdout only formated with ignore", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! ignore'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! ignore"]
+              ['hubot', "@alice Alright, trying to echo ignore with parameters ''."]
+              ['hubot', "@alice Your ticket is 'da7e3fa'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: []
+                channel: "room1"
+                text: "Your command with ticket 'da7e3fa' finished successfully."
+            ]
 
         context "successful with stdout and stderr", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! plain_out_err'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! plain_out_err"]
+              ['hubot', "@alice Alright, trying to echo plain to stdout and stderr with parameters ''."]
+              ['hubot', "@alice Your ticket is 'e637a83'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: [
+                  {
+                    color: "good"
+                    mrkdwn_in: []
+                    text: "stdout\n"
+                    title: "stdout"
+                  }, {
+                    color: "good"
+                    mrkdwn_in: []
+                    text: "stderr\n"
+                    title: "stderr"
+                  }
+                ]
+                channel: "room1"
+                text: "Your command with ticket 'e637a83' finished successfully."
+            ]
 
         context "failed with stderr only", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! fail_out_err'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! fail_out_err"]
+              ['hubot', "@alice Alright, trying to echo plain to stdout and stderr and exit 2 with parameters ''."]
+              ['hubot', "@alice Your ticket is 'a2e2791'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: [
+                  {
+                    color: "danger"
+                    mrkdwn_in: []
+                    text: "stdout\n"
+                    title: "stdout"
+                  }, {
+                    color: "danger"
+                    mrkdwn_in: []
+                    text: "stderr\n"
+                    title: "stderr"
+                  }
+                ]
+                channel: "room1"
+                text: "Your command with ticket 'a2e2791' finished with error code 2, because of null."
+            ]
 
         context "failed with stdout and stderr", ->
-          it "run"
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! fail_err'
+              yield new Promise.delay command_execution_delay
 
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', "@hubot !! fail_err"]
+              ['hubot', "@alice Alright, trying to echo plain to stderr and exit 2 with parameters ''."]
+              ['hubot', "@alice Your ticket is '787ea34'."]
+            ]
+            expect(slackMessages).to.eql [
+                attachments: [
+                    color: "danger"
+                    mrkdwn_in: []
+                    text: "stderr\n"
+                    title: "stderr"
+                ]
+                channel: "room1"
+                text: "Your command with ticket '787ea34' finished with error code 2, because of null."
+            ]
 
 
 setup_test_env = (env) ->
