@@ -14,6 +14,7 @@
 #
 # Todos:
 #   0.1.0
+#   * Add extra role checking for command.role
 #   * Execute a command
 #     * Tests
 #       * Command fails
@@ -55,10 +56,11 @@ config =
   role: process.env.HUBOT_BANGBANG_ROLE or ""
   slack: process.env.HUBOT_BANGBANG_SLACK is "yes"
 
-commands = utils.load_commands_from_file config.commands_file
-
 logger = new Log config.log_level
 logger.notice "#{module_name}: Started."
+
+commands = utils.load_commands_from_file config.commands_file
+logger.info "#{module_name}: Loaded #{commands.length} command#{if commands.length > 1 then 's' else ''}."
 
 module.exports = (robot) ->
 
@@ -66,15 +68,21 @@ module.exports = (robot) ->
     unless is_authorized robot, res.envelope.user
       warn_unauthorized res
     else
-      msg = ("!! #{c.rexex} - #{c.description}" for c in commands)
-      res.reply msg.join('\n')
+      logger.info "#{module_name}: show bangbang commands requested by #{res.envelope.user.name}."
+      msg = if commands.length > 0
+        ("!! #{c.rexex} - #{c.description}" for c in commands).join('\n')
+      else
+        "Uh oh, I'm sorry. There no commands availabe right now. Try to reload the commands file."
+      res.reply msg
 
 
   robot.respond /reload bangbang commands/i, (res) ->
     unless is_authorized robot, res.envelope.user
       warn_unauthorized res
     else
+      logger.info "#{module_name}: reload bangbang commands requested by #{res.envelope.user.name}."
       commands = utils.load_commands_from_file config.commands_file
+      logger.debug "#{module_name}: Reloaded #{commands.length} command#{if commands.length > 1 then 's' else ''}."
       res.reply "Reloaded. Now I recognize #{commands.length} command#{if commands.length > 1 then 's' else ''}."
 
 
