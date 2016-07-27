@@ -55,7 +55,7 @@ describe 'bangbang', ->
 
       context "recognized", ->
 
-        context "use report for server", ->
+        context "successful", ->
           beforeEach ->
             co =>
               yield @room.user.say 'alice', '@hubot !! use report for server'
@@ -85,12 +85,111 @@ describe 'bangbang', ->
             ]
 
 
+describe 'bangbang error handling', ->
+  beforeEach ->
+    @room = setup_test_env {
+      hubot_bangbang_commands_file: "#{__dirname}/commands_for_error_handling-test.js"
+    }
+
+  afterEach ->
+    tear_down_test_env @room
+
+  context "authorized", ->
+
+    context "run command", ->
+
+        context "failed, because command failed", ->
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! exit 2'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', '@hubot !! exit 2']
+              ['hubot', "@alice Alright, trying to exits with specified code with parameters '2'."]
+              ['hubot', "@alice Your ticket is '00e264e'."]
+              ['hubot', "@alice Your command with ticket '00e264e' finished with error code 2, because of null."]
+              ['hubot', "@alice Command output for 'exit 2':"]
+            ]
+
+        context "failed, because command does not exist", ->
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! does not exist for does not matter'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', '@hubot !! does not exist for does not matter']
+              ['hubot', "@alice Alright, trying to tries to run a command that does not exists with parameters 'does not matter'."]
+              ['hubot', "@alice Your ticket is 'f5d8d6f'."]
+              ['hubot', "@alice Your command with ticket 'f5d8d6f' finished with error code 127, because of null."]
+              ['hubot', "@alice Command output for 'no_such_command does not matter':"]
+              ['hubot', "@alice /bin/sh: no_such_command: command not found\n"]
+            ]
+
+        context "failed, because command timedout", ->
+          beforeEach ->
+            co =>
+              yield @room.user.say 'alice', '@hubot !! time out'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', '@hubot !! time out']
+              ['hubot', "@alice Alright, trying to tries to time out with parameters ''."]
+              ['hubot', "@alice Your ticket is '9b528ca'."]
+              ['hubot', "@alice Your command with ticket '9b528ca' finished with error code null, because of SIGTERM."]
+              ['hubot', "@alice Command output for 'sleep 60':"]
+            ]
+
+
+
+describe 'bangbang with Slack', ->
+  beforeEach ->
+    @room = setup_test_env {
+      hubot_bangbang_slack: "yes"
+    }
+
+  afterEach ->
+    tear_down_test_env @room
+
+  context "authorized", ->
+
+    context "run command", ->
+
+      context "recognized", ->
+
+        context "successful with stdout only formated with markdown", ->
+          it "run"
+
+        context "successful with stdout only formated with pre", ->
+          it "run"
+
+        context "successful with stdout only formated with plain", ->
+          it "run"
+
+        context "successful with stdout only formated with ignore", ->
+          it "run"
+
+        context "successful with stdout and stderr", ->
+          it "run"
+
+        context "failed with stderr only", ->
+          it "run"
+
+        context "failed with stdout and stderr", ->
+          it "run"
+
+
+
 setup_test_env = (env) ->
-  process.env.HUBOT_BANGBANG_COMMANDS_FILE = "#{__dirname}/commands-test.js"
-  process.env.HUBOT_BANGBANG_LOG_LEVEL = "error"
-  process.env.HUBOT_BANGBANG_ROLE = "bangbang"
-  process.env.HUBOT_BANGBANG_SLACK is "no"
-  process.env.HUBOT_BANGBANG_TIMEOUT = 1000
+  process.env.HUBOT_BANGBANG_COMMANDS_FILE = env.hubot_bangbang_commands_file or "#{__dirname}/commands-test.js"
+  process.env.HUBOT_BANGBANG_LOG_LEVEL = env.hubot_bangbang_debug_level or "error"
+  process.env.HUBOT_BANGBANG_ROLE = env.hubot_bangbang_role or "bangbang"
+  process.env.HUBOT_BANGBANG_SLACK = env.hubot_bangbang_slack or "no"
+  process.env.HUBOT_BANGBANG_TIMEOUT = env.hubot_bangbang_slack_timeout or 1000
 
   unpatched_utils_now = utils.now
   utils.now = () -> 1469527900631
