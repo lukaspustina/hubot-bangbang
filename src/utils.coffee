@@ -5,7 +5,11 @@ module.exports =
 
   load_commands_from_file: (file) ->
     fs = require 'fs'
-    JSON.parse fs.readFileSync(file, 'utf8')
+    try
+      data = fs.readFileSync(file, 'utf8')
+      JSON.parse data
+    catch error
+      {}
 
   # TODO: Asynx
     #var fs = require('fs');
