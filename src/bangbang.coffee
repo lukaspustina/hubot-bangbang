@@ -64,7 +64,7 @@ module.exports = (robot) ->
     else
       logger.info "#{module_name}: show bangbang commands requested by #{res.envelope.user.name}."
       msg = if commands.length > 0
-        ("!! #{c.rexex} - #{c.description}" for c in commands).join('\n')
+        ("!! #{c.regex} - #{c.description}" for c in commands).join('\n')
       else
         "Uh oh, I'm sorry. There no commands availabe right now. Try to reload the commands file."
       res.reply msg
@@ -90,7 +90,7 @@ module.exports = (robot) ->
 
       command = null
       for c in commands
-        if match = ///#{c.rexex}///i.exec command_req
+        if match = ///#{c.regex}///i.exec command_req
           command = c
           command.matches = match[1..]
           command.time = utils.now()

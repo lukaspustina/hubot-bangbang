@@ -13,7 +13,7 @@ describe 'utils', ->
         {
           name: "use report",
           description: "retrieve an USE report from the specified host",
-          rexex: "use report for (.+)",
+          regex: "use report for (.+)",
           exec: 'echo ssh $1 usereport.py',
           timeout: 60,
           output_type: "markdown",
