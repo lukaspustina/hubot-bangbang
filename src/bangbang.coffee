@@ -122,28 +122,40 @@ module.exports = (robot) ->
           unless config.slack
             res.reply "Your " + result_msg
             res.reply "Command output for '#{command.line}':"
-            res.reply stdout if stdout.length > 0
-            res.reply stderr if stderr.length > 0
+            res.reply stdout if stdout
+            res.reply stderr if stderr
           else
             color = if error then 'danger' else 'good'
             [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
-              when 'markdown' then [ ["text"], stderr, stdout ]
-              when 'pre' then [ ["text"], "```\n#{stdout}\n```", "```\n#{stderr}\n```" ]
-              else [ [], stderr, stdout ] # Also applies for 'plain'
+              when 'markdown' then [
+                ["text"]
+                stdout or null
+                stderr or null
+              ]
+              when 'pre' then [
+                ["text"]
+                if stdout? then "```\n#{stdout}\n```" else null
+                if stderr? then "```\n#{stderr}\n```" else null
+              ]
+              else [ # Also applies for 'plain'
+                []
+                stdout or null
+                stderr or null
+              ]
 
             attachments = []
             attachments.push {
               color: color
               title: "stdout"
               text: pretty_out
-              mrkdwn_in: ["text"]
-            } if stdout and command.output_type is not 'ignore'
+              mrkdwn_in: has_mrkdwn
+            } if pretty_out? and command.out_type != 'ignore'
             attachments.push {
               color: color
               title: "stderr"
               text: pretty_err
-              mrkdwn_in: ["text"]
-            } if stderr and command.output_type is not 'ignore'
+              mrkdwn_in: has_mrkdwn
+            } if pretty_err? and command.out_type != 'ignore'
 
             robot.adapter.customMessage {
               channel: res.message.room
