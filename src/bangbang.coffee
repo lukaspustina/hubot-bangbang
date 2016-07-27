@@ -53,8 +53,16 @@ config =
 logger = new Log config.log_level
 logger.notice "#{module_name}: Started."
 
-commands = utils.load_commands_from_file config.commands_file
-logger.info "#{module_name}: Loaded #{commands.length} command#{if commands.length > 1 then 's' else ''}."
+load_commands = () ->
+  result = utils.load_commands_from_file config.commands_file
+  if result instanceof Error
+    logger.error "#{module_name}: Failed to load commands, because #{result}"
+    {}
+  else
+    logger.info "#{module_name}: Loaded #{result.length} command#{if result.length > 1 then 's' else ''}."
+    result
+
+commands = load_commands()
 
 module.exports = (robot) ->
 
@@ -75,8 +83,7 @@ module.exports = (robot) ->
       warn_unauthorized res
     else
       logger.info "#{module_name}: reload bangbang commands requested by #{res.envelope.user.name}."
-      commands = utils.load_commands_from_file config.commands_file
-      logger.debug "#{module_name}: Reloaded #{commands.length} command#{if commands.length > 1 then 's' else ''}."
+      commands = load_commands()
       res.reply "Reloaded. Now I recognize #{commands.length} command#{if commands.length > 1 then 's' else ''}."
 
 

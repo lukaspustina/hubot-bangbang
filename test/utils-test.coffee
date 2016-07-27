@@ -23,7 +23,11 @@ describe 'utils', ->
 
     it 'file not found', ->
       commands = utils.load_commands_from_file "does_not_exists.js"
-      expect(commands).to.eql {}
+      expect(commands).to.eql new Error "Could not read command file 'does_not_exists.js'."
+
+    it 'invalid JSON', ->
+      commands = utils.load_commands_from_file "invalid-json-test.js"
+      expect(commands).to.eql new Error "Could not parse command file 'invalid-json-test.js'."
 
 
   context 'bind command parameters', ->
