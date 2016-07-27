@@ -125,8 +125,6 @@ describe 'bangbang error handling', ->
               ['hubot', "@alice Alright, trying to tries to run a command that does not exists with parameters 'does not matter'."]
               ['hubot', "@alice Your ticket is 'f5d8d6f'."]
               ['hubot', "@alice Your command with ticket 'f5d8d6f' finished with error code 127, because of null."]
-              ['hubot', "@alice Command output for 'no_such_command does not matter':"]
-              ['hubot', "@alice /bin/sh: no_such_command: command not found\n"]
             ]
 
         context "failed, because command timedout", ->

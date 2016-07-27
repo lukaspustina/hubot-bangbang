@@ -122,9 +122,10 @@ module.exports = (robot) ->
 
           unless config.slack
             res.reply "Your " + result_msg
-            res.reply "Command output for '#{command.line}':"
-            res.reply stdout if stdout
-            res.reply stderr if stderr
+            unless command.output_type is 'ignore'
+              res.reply "Command output for '#{command.line}':"
+              res.reply stdout if stdout
+              res.reply stderr if stderr
           else
             color = if error then 'danger' else 'good'
             [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
@@ -150,13 +151,13 @@ module.exports = (robot) ->
               title: "stdout"
               text: pretty_out
               mrkdwn_in: has_mrkdwn
-            } if pretty_out? and command.out_type != 'ignore'
+            } if pretty_out? and command.output_type != 'ignore'
             attachments.push {
               color: color
               title: "stderr"
               text: pretty_err
               mrkdwn_in: has_mrkdwn
-            } if pretty_err? and command.out_type != 'ignore'
+            } if pretty_err? and command.output_type != 'ignore'
 
             robot.adapter.customMessage {
               channel: res.message.room

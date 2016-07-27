@@ -13,7 +13,7 @@
     "regex": "does not exist for (.+)",
     "exec": "no_such_command $1",
     "timeout": 60,
-    "output_type": "pre"
+    "output_type": "ignore"
   },
   {
     "name": "time out",
