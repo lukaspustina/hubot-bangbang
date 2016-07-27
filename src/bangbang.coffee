@@ -14,17 +14,6 @@
 #
 # Todos:
 #   0.1.0
-#   * Add extra role checking for command.role
-#   * Execute a command
-#     * Tests
-#       * Command fails
-#       * Command does not exist
-#       * Timeout fires
-#       * Slack Output
-#         * markdown
-#         * plain
-#         * ignore
-#         * pretty
 #   * Documentation
 #     * commands JSON format
 #     * Output Types
@@ -109,64 +98,68 @@ module.exports = (robot) ->
         res.reply "Oh oh! Did not recognize any command in '#{command_req}'."
       else
         logger.info "#{module_name}: Recognized command '#{command.name}' in '#{command_req}'."
-        res.reply "Alright, trying to #{c.description} with parameters '#{command.matches}'."
 
-        command.line = utils.bind_command_parameters command
-        logger.debug "#{module_name}: Going to execute '#{command.line}'."
-        command.ticket = utils.exec_command command, (error, stdout, stderr) ->
-          result_msg = if error
-            "command with ticket '#{utils.shorten_ticket command.ticket}' finished with error code #{error.code}, because of #{error.signal}."
-          else
-            "command with ticket '#{utils.shorten_ticket command.ticket}' finished successfully."
-          logger.info "#{module_name}: #{result_msg}"
+        if command.role and not is_authorized robot, res.envelope.user, command
+          warn_unauthorized res, command
+        else
+          res.reply "Alright, trying to #{c.description} with parameters '#{command.matches}'."
 
-          unless config.slack
-            res.reply "Your " + result_msg
-            unless command.output_type is 'ignore'
-              res.reply "Command output for '#{command.line}':"
-              res.reply stdout if stdout
-              res.reply stderr if stderr
-          else
-            color = if error then 'danger' else 'good'
-            [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
-              when 'markdown' then [
-                ["text"]
-                stdout or null
-                stderr or null
-              ]
-              when 'pre' then [
-                ["text"]
-                if stdout then "```\n#{stdout}\n```" else null
-                if stderr then "```\n#{stderr}\n```" else null
-              ]
-              else [ # Also applies for 'plain'
-                []
-                stdout or null
-                stderr or null
-              ]
+          command.line = utils.bind_command_parameters command
+          logger.debug "#{module_name}: Going to execute '#{command.line}'."
+          command.ticket = utils.exec_command command, (error, stdout, stderr) ->
+            result_msg = if error
+              "command with ticket '#{utils.shorten_ticket command.ticket}' finished with error code #{error.code}, because of #{error.signal}."
+            else
+              "command with ticket '#{utils.shorten_ticket command.ticket}' finished successfully."
+            logger.info "#{module_name}: #{result_msg}"
 
-            attachments = []
-            attachments.push {
-              color: color
-              title: "stdout"
-              text: pretty_out
-              mrkdwn_in: has_mrkdwn
-            } if pretty_out? and command.output_type != 'ignore'
-            attachments.push {
-              color: color
-              title: "stderr"
-              text: pretty_err
-              mrkdwn_in: has_mrkdwn
-            } if pretty_err? and command.output_type != 'ignore'
+            unless config.slack
+              res.reply "Your " + result_msg
+              unless command.output_type is 'ignore'
+                res.reply "Command output for '#{command.line}':"
+                res.reply stdout if stdout
+                res.reply stderr if stderr
+            else
+              color = if error then 'danger' else 'good'
+              [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
+                when 'markdown' then [
+                  ["text"]
+                  stdout or null
+                  stderr or null
+                ]
+                when 'pre' then [
+                  ["text"]
+                  if stdout then "```\n#{stdout}\n```" else null
+                  if stderr then "```\n#{stderr}\n```" else null
+                ]
+                else [ # Also applies for 'plain'
+                  []
+                  stdout or null
+                  stderr or null
+                ]
 
-            robot.adapter.customMessage {
-              channel: res.message.room
-              text: "Your " + result_msg
-              attachments: attachments
-            }
+              attachments = []
+              attachments.push {
+                color: color
+                title: "stdout"
+                text: pretty_out
+                mrkdwn_in: has_mrkdwn
+              } if pretty_out? and command.output_type != 'ignore'
+              attachments.push {
+                color: color
+                title: "stderr"
+                text: pretty_err
+                mrkdwn_in: has_mrkdwn
+              } if pretty_err? and command.output_type != 'ignore'
 
-        logger.info "#{module_name}: Ticket for '#{command.line}' is '#{command.ticket}'."
-        res.reply "Your ticket is '#{utils.shorten_ticket command.ticket}'."
+              robot.adapter.customMessage {
+                channel: res.message.room
+                text: "Your " + result_msg
+                attachments: attachments
+              }
+
+          logger.info "#{module_name}: Ticket for '#{command.line}' is '#{command.ticket}'."
+          res.reply "Your ticket is '#{utils.shorten_ticket command.ticket}'."
 
 
   robot.error (err, res) ->
@@ -176,13 +169,23 @@ module.exports = (robot) ->
       res.reply "DOES NOT COMPUTE: #{err}"
 
 
-is_authorized = (robot, user) ->
-  logger.debug "Checking authorization for user '#{user.name}' and role '#{config.role}': role is #{config.role is ""}, auth is #{robot.auth.hasRole(user, config.role)}, combined is #{config.role is "" or robot.auth.hasRole(user, config.role)}."
-  config.role is "" or robot.auth.hasRole(user, config.role)
+is_authorized = (robot, user, command) ->
+  general_auth = config.role is "" or robot.auth.hasRole(user, config.role)
+  command_auth = not command? or not command.role? or robot.auth.hasRole(user, command.role)
+  result = general_auth and command_auth
 
-warn_unauthorized = (res) ->
+  logger.debug "Checking authorization for user '#{user.name}', role '#{config.role}', and command '#{if command? then command.name else "<not queried>"}': general authorization is '#{general_auth}', command authorization is '#{command_auth}', and result is '#{result}'."
+
+  result
+
+warn_unauthorized = (res, command) ->
   user = res.envelope.user.name
   message = res.message.text
   logger.warning "hubot-#{module_name}: #{user} tried to run '#{message}' but was not authorized."
-  res.reply "Sorry, you're not allowed to do that. You need the '#{config.role}' role."
+
+  role_msg = if command?
+    "'#{config.role}' and '#{command.role}' roles"
+  else
+    "'#{config.role}' role"
+  res.reply "Sorry, you're not allowed to do that. You need the #{role_msg}."
 

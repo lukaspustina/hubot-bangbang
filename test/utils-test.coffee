@@ -11,13 +11,20 @@ describe 'utils', ->
       commands = utils.load_commands_from_file "#{__dirname}/commands-test.js"
       expect(commands).to.eql [
         {
+          name: "date",
+          description: "retrieve local date from the specified host",
+          regex: "date for (.+)",
+          exec: "echo ssh $1 date",
+          timeout: 60,
+          output_type: "plain",
+        }, {
           name: "use report",
           description: "retrieve an USE report from the specified host",
           regex: "use report for (.+)",
           exec: 'echo ssh $1 usereport.py',
           timeout: 60,
           output_type: "markdown",
-          role: "task_use_report",
+          role: "bangbang.use_report",
         }
       ]
 

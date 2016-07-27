@@ -19,14 +19,14 @@ describe 'bangbang', ->
   afterEach ->
     tear_down_test_env @room
 
-  context "authorized", ->
+  context "generally authorized", ->
 
     context "show help", ->
       it 'help', ->
         @room.user.say('alice', '@hubot show bangbang commands').then =>
           expect(@room.messages).to.eql [
             ['alice', '@hubot show bangbang commands']
-            ['hubot', "@alice !! use report for (.+) - retrieve an USE report from the specified host"]
+            ['hubot', "@alice !! date for (.+) - retrieve local date from the specified host\n!! use report for (.+) - retrieve an USE report from the specified host"]
           ]
 
     context "reload commands", ->
@@ -34,7 +34,7 @@ describe 'bangbang', ->
         @room.user.say('alice', '@hubot reload bangbang commands').then =>
           expect(@room.messages).to.eql [
             ['alice', '@hubot reload bangbang commands']
-            ['hubot', "@alice Reloaded. Now I recognize 1 command."]
+            ['hubot', "@alice Reloaded. Now I recognize 2 commands."]
           ]
 
     context "run command", ->
@@ -58,6 +58,28 @@ describe 'bangbang', ->
         context "successful", ->
           beforeEach ->
             co =>
+              yield @room.user.say 'alice', '@hubot !! date for server'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['alice', '@hubot !! date for server']
+              ['hubot', "@alice Alright, trying to retrieve local date from the specified host with parameters 'server'."]
+              ['hubot', "@alice Your ticket is '5c89100'."]
+              ['hubot', "@alice Your command with ticket '5c89100' finished successfully."]
+              ['hubot', "@alice Command output for 'echo ssh server date':"]
+              ['hubot', "@alice ssh server date\n"]
+            ]
+
+  context "command based authorized", ->
+
+    context "run command", ->
+
+      context "recognized", ->
+
+        context "successful", ->
+          beforeEach ->
+            co =>
               yield @room.user.say 'alice', '@hubot !! use report for server'
               yield new Promise.delay command_execution_delay
 
@@ -71,7 +93,25 @@ describe 'bangbang', ->
               ['hubot', "@alice ssh server usereport.py\n"]
             ]
 
-  context "unauthorized", ->
+   context "command based unauthorized", ->
+
+    context "run command", ->
+
+      context "recognized", ->
+
+        context "Fail if unauthorized", ->
+          beforeEach ->
+            co =>
+              yield @room.user.say 'charlie', '@hubot !! use report for server'
+              yield new Promise.delay command_execution_delay
+
+          it 'run', ->
+            expect(@room.messages).to.eql [
+              ['charlie', '@hubot !! use report for server']
+              ['hubot', "@charlie Sorry, you're not allowed to do that. You need the 'bangbang' and 'bangbang.use_report' roles."]
+            ]
+
+  context "generally unauthorized", ->
 
     context "run command", ->
 
@@ -361,5 +401,9 @@ tear_down_test_env = (room) ->
 
 class MockAuth
   hasRole: (user, role) ->
-    if user.name is 'alice' and role is 'bangbang' then true else false
+    if user.name is 'alice' and role is 'bangbang' then return true
+    if user.name is 'alice' and role is 'bangbang.use_report' then return true
+    if user.name is 'charlie' and role is 'bangbang' then return true
+
+    return false
 
