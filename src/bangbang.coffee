@@ -136,8 +136,8 @@ module.exports = (robot) ->
               ]
               when 'pre' then [
                 ["text"]
-                if stdout? then "```\n#{stdout}\n```" else null
-                if stderr? then "```\n#{stderr}\n```" else null
+                if stdout then "```\n#{stdout}\n```" else null
+                if stderr then "```\n#{stderr}\n```" else null
               ]
               else [ # Also applies for 'plain'
                 []
