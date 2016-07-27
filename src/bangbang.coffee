@@ -25,12 +25,6 @@
 #         * plain
 #         * ignore
 #         * pretty
-#   * Commands
-#     * !! reload commands -- reload command definition
-#     * !! <...> -- execute a specific command
-#   * Output
-#     * plain output
-#     * pretty print for slack
 #   * Documentation
 #     * commands JSON format
 #     * Output Types
