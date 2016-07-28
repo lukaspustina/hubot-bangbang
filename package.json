@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "author": "lukas.pustina@gmail.co",
   "license": "MIT",
-  "keywords": "hubot, bangbang",
+  "keywords": "hubot, hubot-scripts, bangbang",
   "repository": {
     "type": "git",
     "url": "git://github.com/lukaspustina/hubot-bangbang.git"
