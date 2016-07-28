@@ -1,5 +1,5 @@
 # Description
-#   Execute pre-configured commands via hubot !!
+#   Execute changeable pre-defined shell commands via hubot in a secure way !!
 #
 # Configuration:
 #
@@ -10,13 +10,11 @@
 # Notes:
 #
 # Author:
-#   lukas.pustina@gmail.com
+#   lukas@pustina.net
 #
 # Todos:
 #   0.1.0
-#   * Documentation
-#     * commands JSON format
-#     * Output Types
+#   * Demo Docker Image
 #   0.2.0
 #   * Events
 #     * Receive
