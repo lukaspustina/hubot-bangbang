@@ -32,7 +32,8 @@ module.exports =
     command_line = command.exec
     matches = command.matches
     for i in [0..matches.length-1]
-      command_line = command_line.replace "$#{i+1}", matches[i]
+      re = new RegExp "\\$#{i+1}", 'g'
+      command_line = command_line.replace re, matches[i]
     command_line
 
   exec_command: (command, handler ) ->
