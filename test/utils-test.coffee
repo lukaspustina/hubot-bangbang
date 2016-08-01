@@ -39,10 +39,16 @@ describe 'utils', ->
 
   context 'bind command parameters', ->
 
-    it 'success', ->
+    it 'bind two parameters', ->
       command = { exec: "ssh $1 ls $2", matches: ["server", "/home"] }
       command_line = utils.bind_command_parameters command
       expect(command_line).to.eql "ssh server ls /home"
+
+
+    it 'bind one parameter for two occurrences', ->
+      command = { exec: "echo $1 is $1", matches: ["Bangbang"] }
+      command_line = utils.bind_command_parameters command
+      expect(command_line).to.eql "echo Bangbang is Bangbang"
 
 
   context 'tickets', ->
