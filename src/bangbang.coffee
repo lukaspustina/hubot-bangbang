@@ -118,43 +118,67 @@ module.exports = (robot) ->
                 res.reply stdout if stdout
                 res.reply stderr if stderr
             else
-              color = if error then 'danger' else 'good'
-              [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
-                when 'markdown' then [
-                  ["text"]
-                  stdout or null
-                  stderr or null
-                ]
-                when 'pre' then [
-                  ["text"]
-                  if stdout then "```\n#{stdout}\n```" else null
-                  if stderr then "```\n#{stderr}\n```" else null
-                ]
-                else [ # Also applies for 'plain'
-                  []
-                  stdout or null
-                  stderr or null
-                ]
+              # TODO: refactor this into individual methods
+              ## Probably this should just depent on the amount of bytes > 4k
+              switch command.output_type
+                when 'snippet'
+                  upload_options =
+                    # TODO: Make this sane and respect other output_type parameters
+                    content: stdout + stderr
+                    title: "Your " + result_msg
+                    # file type should respect output_type -> auto, text,
+                    filetype: 'markdown'
+                    channels: res.message.room
+                  # TODO: Resources
+                  # - https://github.com/slackhq/hubot-slack/blob/master/test/client.coffee
+                  # - https://github.com/slackhq/node-slack-sdk/blob/master/lib/clients/web/client.js
+                  # - https://api.slack.com/methods/files.upload/test
+                  # - https://api.slack.com/methods/files.upload
+                  # - https://github.com/slackhq/node-slack-sdk/blob/1003498a664562da700d1d651b8cf4abd660f80a/examples/upload-a-file.js
+                  # - https://github.com/slackhq/node-slack-sdk/blob/master/lib/clients/web/facets/files.js
+                  console.log robot.adapter.client.rtm
+                  console.log robot.adapter.client.web
+                  robot.adapter.client.web.files.upload command.ticket, upload_options, (err, res) ->
+                    console.log res
 
-              attachments = []
-              attachments.push {
-                color: color
-                title: "stdout"
-                text: pretty_out
-                mrkdwn_in: has_mrkdwn
-              } if pretty_out? and command.output_type != 'ignore'
-              attachments.push {
-                color: color
-                title: "stderr"
-                text: pretty_err
-                mrkdwn_in: has_mrkdwn
-              } if pretty_err? and command.output_type != 'ignore'
+                else
+                  color = if error then 'danger' else 'good'
+                  [has_mrkdwn, pretty_out, pretty_err] = switch command.output_type
+                    when 'markdown' then [
+                      ["text"]
+                      stdout or null
+                      stderr or null
+                    ]
+                    when 'pre' then [
+                      ["text"]
+                      if stdout then "```\n#{stdout}\n```" else null
+                      if stderr then "```\n#{stderr}\n```" else null
+                    ]
+                    else [ # Also applies for 'plain'
+                      []
+                      stdout or null
+                      stderr or null
+                    ]
 
-              robot.adapter.customMessage {
-                channel: res.message.room
-                text: "Your " + result_msg
-                attachments: attachments
-              }
+                  attachments = []
+                  attachments.push {
+                    color: color
+                    title: "stdout"
+                    text: pretty_out
+                    mrkdwn_in: has_mrkdwn
+                  } if pretty_out? and command.output_type != 'ignore'
+                  attachments.push {
+                    color: color
+                    title: "stderr"
+                    text: pretty_err
+                    mrkdwn_in: has_mrkdwn
+                  } if pretty_err? and command.output_type != 'ignore'
+
+                  robot.adapter.customMessage {
+                    channel: res.message.room
+                    text: "Your " + result_msg
+                    attachments: attachments
+                  }
 
           logger.info "#{module_name}: Ticket for '#{command.line}' is '#{command.ticket}'."
           res.reply "Your ticket is '#{utils.shorten_ticket command.ticket}'."
