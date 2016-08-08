@@ -1,7 +1,7 @@
 {
   "name": "hubot-bangbang",
   "description": "Execute changeable pre-defined shell commands via hubot in a secure way !!",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "lukas.pustina@gmail.co",
   "license": "MIT",
   "keywords": "hubot, hubot-scripts, bangbang",
