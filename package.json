@@ -17,7 +17,7 @@
     "log": "^1.4.0"
   },
   "peerDependencies": {
-    "hubot": "2.x"
+    "hubot": "3.x"
   },
   "devDependencies": {
     "bluebird": "^3.5.1",
