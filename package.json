@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "hubot-auth": "2.1.0",
-    "log": "^1.4.0"
+    "log": "^6.0.0"
   },
   "peerDependencies": {
     "hubot": "2.x"
